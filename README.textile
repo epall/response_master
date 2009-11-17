@@ -1,0 +1,16 @@
+h1. Response Master
+
+By "Eric Allen":http://hackerengineer.net/
+
+h2. Description
+
+Many systems can be represented using transfer functions in the Laplace domain.
+This Laplace form can be written as an equation, but it can also be shown
+graphically using a pole-zero plot. Response Master seeks to provide an
+interactive pole-zero plot that allows students to explore how it maps to
+system response.
+
+h2. Future
+
+Eventually, Response Master should provide a Bode plot and an equation of the
+function in real-time as the pole-zero plot is modified.
