@@ -1,0 +1,147 @@
+<html>
+  <head>
+    <title>Response Master</title>
+    <style type="text/css">
+      .plot_element {
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        vertical-align: center;
+        padding: 5px;
+        cursor: move;
+      }
+
+      #draggables {
+        height: 25px;
+        text-align: center;
+        width: 60px;
+        margin-left: 270px;
+      }
+    </style>
+    <script src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      const FPS = 20;
+      const VERTICAL_DIVISIONS = 10;
+      const HORIZONTAL_DIVISIONS = 10;
+      const MIN_REAL = -10;
+      const MAX_REAL = 10;
+      const MIN_IMAGINARY = -10;
+      const MAX_IMAGINARY = 10;
+      var canvas = null;
+      var g = null;
+      var x_grid = 0;
+      var y_grid = 0;
+      var poles = [];
+      var zeros = [];
+
+      google.load('jquery', '1');
+      google.load('jqueryui', '1.7.2');
+      google.setOnLoadCallback(function(){
+          // set up canvas
+          canvas = document.getElementById('plot');
+          g = canvas.getContext('2d');
+          x_grid = (canvas.width-4)/HORIZONTAL_DIVISIONS;
+          y_grid = (canvas.height-4)/VERTICAL_DIVISIONS;
+          setInterval(draw, 1000 / FPS);
+
+          // set up dragging
+          $('.plot_element').draggable({appendTo: 'body',
+            helper: 'clone', revert: 'invalid', cursor: 'move'});
+
+          $('#plot').droppable({
+            drop: drop_plot_element
+          });
+      });
+
+      function drop_plot_element(event, ui) {
+        var type = ui.draggable.text();
+        coords = {x: event.pageX-5, y:event.pageY+5}
+        var graphCoords = coordinates.screenToGraph(coords);
+        var planeCoords = coordinates.graphToPlane(graphCoords);
+        var el = {x: planeCoords.x, y: planeCoords.y};
+        if(type == "X"){
+          poles.push(el);
+        }
+        else if(type == "O"){
+          zeros.push(el);
+        }
+      }
+
+      function draw(){
+        g.clearRect(0, 0, canvas.width, canvas.height);
+
+         // grid
+        g.beginPath();
+        for(var x = 0; x < HORIZONTAL_DIVISIONS+1; x++){
+          g.moveTo(x*x_grid+2, 0);
+          g.lineTo(x*x_grid+2, canvas.height);
+        }
+        for(var y = 0; y < VERTICAL_DIVISIONS+1; y++){
+          g.moveTo(0, y*y_grid+2);
+          g.lineTo(canvas.width, y*y_grid+2);
+        }
+        g.strokeStyle = "#AAAAAA";
+        g.strokeStyle = "#AAAAAA";
+        g.stroke();
+        
+        // axes
+        g.beginPath();
+        g.strokeStyle = "#000000";
+        g.moveTo(2, canvas.height/2);
+        g.lineTo(canvas.width-2, canvas.height/2);
+        g.stroke();
+        g.moveTo(canvas.width/2, 2);
+        g.lineTo(canvas.width/2, canvas.height-2);
+        g.stroke();
+
+        // axis labels
+        g.font = "10pt sans-serif";
+        g.fillText("Imaginary", canvas.width/2+5, 15);
+        g.fillText("Real", canvas.width-30, canvas.height/2-5);
+
+        // draw poles
+        for(var i = 0; i < poles.length; i++){
+          var pole = poles[i];
+          var graphCoords = coordinates.planeToGraph(pole);
+          g.fillText("X", graphCoords.x,  graphCoords.y);
+        }
+
+        // draw zeros
+        for(var i = 0; i < zeros.length; i++){
+          var zero = zeros[i];
+          var graphCoords = coordinates.planeToGraph(zero);
+          g.fillText("O", graphCoords.x,  graphCoords.y);
+        }
+
+     }
+
+      var coordinates = {
+        screenToGraph: function(pt){
+                         graphX = $('#plot').offset().left;
+                         graphY = $('#plot').offset().top;
+                         return {x: (pt.x-graphX),
+                           y: (pt.y-graphY)}
+        },
+        graphToPlane: function(pt){
+                        planeX = (pt.x-canvas.width/2) * ((MAX_REAL-MIN_REAL)/canvas.width);
+                        planeY = (pt.y-canvas.height/2) * ((MAX_IMAGINARY-MIN_IMAGINARY)/canvas.height);
+                        planeY = -planeY;
+                        return {x: planeX, y: planeY}
+        },
+        planeToGraph: function(pt){
+                        graphX = (pt.x + (MAX_REAL-MIN_REAL)/2) * (canvas.width/(MAX_REAL-MIN_REAL));
+                        graphY = -(pt.y - (MAX_IMAGINARY-MIN_IMAGINARY)/2) * (canvas.height/(MAX_IMAGINARY-MIN_IMAGINARY));
+                        return {x: graphX, y: graphY}
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Response Master</h1>
+    <div id="draggables">
+      <div class="plot_element" style="float:left">X</div>
+      <div class="plot_element" style="float:right">O</div>
+    </div>
+    <canvas id="plot" width="600" height="400"></canvas>
+  </body>
+</html>
