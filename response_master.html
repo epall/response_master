@@ -59,8 +59,15 @@
         var graphCoords = coordinates.screenToGraph(coords);
         var planeCoords = coordinates.graphToPlane(graphCoords);
         var el = {x: planeCoords.x, y: planeCoords.y};
+        if(el.y < 0.01 && el.y > -0.01){
+          el.y = 0;
+        }
         if(type == "X"){
           poles.push(el);
+          if(el.y != 0) {
+            negative = {x: el.x, y: -el.y}
+            poles.push(negative);
+          }
         }
         else if(type == "O"){
           zeros.push(el);
